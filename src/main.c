@@ -7,11 +7,21 @@ static const int screenWidth = 1920;
 static const int screenHeight = 1080;
 static const int frameRate = 144; 
 
-static Rectangle playerOnePaddle = { 100.0f, (float)screenHeight / 2, 30, 200 };
-static Rectangle playerTwoPaddle = { screenWidth - 200, (float)screenHeight / 2, 30, 200 };
+typedef struct Paddle {
+    Rectangle paddle;
+} Paddle;
 
-static Vector2 ballPosition = { (float)screenWidth / 2, (float)screenHeight / 2};
-static Vector2 ballVelocity = { -5.0f, 5.0f }; // Initial velocity heads towards playerOne
+typedef struct Ball {
+    Vector2 position;
+    Vector2 velocity;
+} Ball;
+
+static int playerOneScore = 0;
+static int playerTwoScore = 0;
+
+static Paddle playerOne = { 0 };
+static Paddle playerTwo = { 0 };
+static Ball ball = { 0 };
 
 static void InitGame(void);
 static void UpdateGame(void);
@@ -20,7 +30,7 @@ static void UpdateDrawFrame(void);
 
 int main(void)
 {
-    InitAudioDevice();
+    // InitAudioDevice();
     InitWindow(screenWidth, screenHeight, "Pong");
     InitGame();
 
@@ -34,7 +44,7 @@ int main(void)
 
     // UnloadSound(paddleHitSound);
 
-    CloseAudioDevice();
+    // CloseAudioDevice();
     CloseWindow();
         
     return 0;
@@ -42,65 +52,76 @@ int main(void)
 
 void InitGame(void)
 {
+    playerOne.paddle = (Rectangle){ 100.0f, (float)screenHeight / 2 - 100, 30, 200 };
+    playerTwo.paddle = (Rectangle){ screenWidth - 100, (float)screenHeight / 2 - 100, 30, 200 };
 
+    ball.position = (Vector2){ (float)screenWidth / 2, (float)screenHeight / 2 };
+    ball.velocity = (Vector2){ -5.0f, 5.0f };
 }
 
 void UpdateGame(void)
 {
 
+    // Paddle Movement
     if (IsKeyDown(KEY_UP))
         {
-            playerOnePaddle.y = ( (playerOnePaddle.y - 4.0f) < 0.0f) ? playerOnePaddle.y : playerOnePaddle.y - 4.0f;
+            playerOne.paddle.y = ( (playerOne.paddle.y - 4.0f) < 0.0f) ? playerOne.paddle.y : playerOne.paddle.y - 4.0f;
         }
-        if (IsKeyDown(KEY_DOWN))
+    if (IsKeyDown(KEY_DOWN))
+    {
+        playerOne.paddle.y = ( (playerOne.paddle.y + 4.0f) > (float)screenHeight - 200) ? playerOne.paddle.y : playerOne.paddle.y + 4.0f;
+    }
+
+    // Ball collides with paddle
+    if ( CheckCollisionCircleRec(ball.position, 25.0f, playerOne.paddle) || CheckCollisionCircleRec(ball.position, 25.0f, playerTwo.paddle) )
+    {
+        if ( ((playerOne.paddle.y < ball.position.y) && (playerOne.paddle.y > ball.position.y - 100)) ||
+             ((playerTwo.paddle.y <= ball.position.y) && (playerTwo.paddle.y > ball.position.y - 100)) ) // hits top half of paddle
         {
-            playerOnePaddle.y = ( (playerOnePaddle.y + 4.0f) > (float)screenHeight - 200) ? playerOnePaddle.y : playerOnePaddle.y + 4.0f;
+            ball.velocity.x = -(ball.velocity.x);
+            ball.velocity.y = (ball.velocity.y);
         }
 
-        // Ball collides with paddle
-        if ( (CheckCollisionCircleRec(ballPosition, 25.0f, playerOnePaddle)) || (CheckCollisionCircleRec(ballPosition, 25.0f, playerTwoPaddle)) )
+        if ( ((playerOne.paddle.y < (ball.position.y - 100)) && (playerOne.paddle.y > (ball.position.y - 200))) ||
+             ((playerTwo.paddle.y <= (ball.position.y - 100)) && (playerTwo.paddle.y > (ball.position.y - 200))) ) // hits bottom half of paddle
         {
-            // if ( (playerOnePaddle.y <= ballPosition.y) && (playerOnePaddle.y >= ballPosition.y - 100) ) // hits top half of paddle
-            // {
-            //     printf("Hits top half of paddle\n");
-            //     ballVelocity.x = -(ballVelocity.x);
-            //     ballVelocity.y = (ballVelocity.y);
-            // }
-
-            // if ( (playerOnePaddle.y <= ballPosition.y + 100) && (playerOnePaddle.y >= ballPosition.y + 200) ) printf("Hits bottom half of paddle\n");
-
-            ballVelocity.x = -(ballVelocity.x);
-            ballVelocity.y = -(ballVelocity.y);
-
-            // PlaySound(paddleHitSound);
+            ball.velocity.x = -(ball.velocity.x);
+            ball.velocity.y = -(ball.velocity.y);
         }
-        // Ball collides with top of screen
-        if ( (ballPosition.y == screenHeight) || (ballPosition.y == 0)) ballVelocity.y = -(ballVelocity.y);
 
-        // Ball collides with sides of screen
-        if ( (ballPosition.x == screenWidth) || (ballPosition.x == 0)) ballVelocity.x = -(ballVelocity.x);
+        // PlaySound(paddleHitSound);
+    }
+    // Ball collides with top of screen
+    if ( (ball.position.y == screenHeight) || (ball.position.y == 0)) ball.velocity.y = -(ball.velocity.y);
 
-        ballPosition.x += ballVelocity.x;
-        ballPosition.y += ballVelocity.y;
+    // Ball collides with sides of screen
+    if ( (ball.position.x == screenWidth)) // Player two scores
+    {
+        playerTwoScore++;
+    }
 
-        // FIXME: RESET BUTTON FOR TESTING
-        if (IsKeyDown(KEY_R))
-        {
-            playerOnePaddle.y = (float)screenHeight / 2;
-            ballPosition.x = (float)screenWidth / 2;
-            ballPosition.y = (float)screenHeight / 2;
-            ballVelocity.x = -5.0f;
-            ballVelocity.y = 5.0f;
-        }
+    if ((ball.position.x == 0)) // Player one scores
+    {
+        playerOneScore++;
+    }
+
+    ball.position.x += ball.velocity.x;
+    ball.position.y += ball.velocity.y;
+
+    // FIXME: RESET BUTTON FOR TESTING
+    if (IsKeyDown(KEY_R))
+    {
+        InitGame();
+    }
 }
 
 void DrawGame(void)
 {
     BeginDrawing();
     ClearBackground(BLACK);
-    DrawRectangleRec(playerOnePaddle, WHITE);
-    DrawRectangleRec(playerTwoPaddle, WHITE);
-    DrawCircleV(ballPosition, 25.0f, WHITE);
+    DrawRectangleRec(playerOne.paddle, WHITE);
+    DrawRectangleRec(playerTwo.paddle, WHITE);
+    DrawCircleV(ball.position, 25.0f, WHITE);
     EndDrawing();
 }
 
