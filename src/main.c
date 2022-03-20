@@ -1,5 +1,7 @@
 #include "raylib.h"
 
+#include <stdio.h>
+
 // Initialize
 static const int screenWidth = 1920;
 static const int screenHeight = 1080;
@@ -58,8 +60,18 @@ void UpdateGame(void)
         // Ball collides with paddle
         if ( (CheckCollisionCircleRec(ballPosition, 25.0f, playerOnePaddle)) || (CheckCollisionCircleRec(ballPosition, 25.0f, playerTwoPaddle)) )
         {
+            // if ( (playerOnePaddle.y <= ballPosition.y) && (playerOnePaddle.y >= ballPosition.y - 100) ) // hits top half of paddle
+            // {
+            //     printf("Hits top half of paddle\n");
+            //     ballVelocity.x = -(ballVelocity.x);
+            //     ballVelocity.y = (ballVelocity.y);
+            // }
+
+            // if ( (playerOnePaddle.y <= ballPosition.y + 100) && (playerOnePaddle.y >= ballPosition.y + 200) ) printf("Hits bottom half of paddle\n");
+
             ballVelocity.x = -(ballVelocity.x);
             ballVelocity.y = -(ballVelocity.y);
+
             // PlaySound(paddleHitSound);
         }
         // Ball collides with top of screen
