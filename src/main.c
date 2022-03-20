@@ -2,11 +2,6 @@
 
 #include <stdio.h>
 
-// Initialize
-static const int screenWidth = 1920;
-static const int screenHeight = 1080;
-static const int frameRate = 144; 
-
 typedef struct Paddle {
     Rectangle paddle;
 } Paddle;
@@ -15,6 +10,11 @@ typedef struct Ball {
     Vector2 position;
     Vector2 velocity;
 } Ball;
+
+// Initialize
+static const int screenWidth = 1920;
+static const int screenHeight = 1080;
+static const int frameRate = 144; 
 
 static int playerOneScore = 0;
 static int playerTwoScore = 0;
@@ -30,7 +30,6 @@ static void UpdateDrawFrame(void);
 
 int main(void)
 {
-    // InitAudioDevice();
     InitWindow(screenWidth, screenHeight, "Pong");
     InitGame();
 
@@ -42,9 +41,6 @@ int main(void)
         UpdateDrawFrame();
     }
 
-    // UnloadSound(paddleHitSound);
-
-    // CloseAudioDevice();
     CloseWindow();
         
     return 0;
