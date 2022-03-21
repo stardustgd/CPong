@@ -12,17 +12,10 @@ typedef struct Ball {
     Vector2 velocity;
 } Ball;
 
-typedef enum GameState {
-    LOGO = 0,
-    TITLE,
-    GAMEPLAY,
-    ENDING
-} GameState;
-
 // Initialize
 static const int screenWidth = 1920;
 static const int screenHeight = 1080;
-static const int frameRate = 144; 
+static const int frameRate = 144;
 
 static Player playerOne = { 0 };
 static Player playerTwo = { 0 };
