@@ -2,25 +2,30 @@
 
 #include <stdio.h>
 
-typedef struct Paddle {
+typedef struct Player {
     Rectangle paddle;
-} Paddle;
+    int score; 
+} Player;
 
 typedef struct Ball {
     Vector2 position;
     Vector2 velocity;
 } Ball;
 
+typedef enum GameState {
+    LOGO = 0,
+    TITLE,
+    GAMEPLAY,
+    ENDING
+} GameState;
+
 // Initialize
 static const int screenWidth = 1920;
 static const int screenHeight = 1080;
 static const int frameRate = 144; 
 
-static int playerOneScore = 0;
-static int playerTwoScore = 0;
-
-static Paddle playerOne = { 0 };
-static Paddle playerTwo = { 0 };
+static Player playerOne = { 0 };
+static Player playerTwo = { 0 };
 static Ball ball = { 0 };
 
 static void InitGame(void);
@@ -49,7 +54,9 @@ int main(void)
 void InitGame(void)
 {
     playerOne.paddle = (Rectangle){ 100.0f, (float)screenHeight / 2 - 100, 30, 200 };
+    playerOne.score = 0;
     playerTwo.paddle = (Rectangle){ screenWidth - 100, (float)screenHeight / 2 - 100, 30, 200 };
+    playerTwo.score = 0;
 
     ball.position = (Vector2){ (float)screenWidth / 2, (float)screenHeight / 2 };
     ball.velocity = (Vector2){ -5.0f, 5.0f };
@@ -91,14 +98,14 @@ void UpdateGame(void)
     if ( (ball.position.y == screenHeight) || (ball.position.y == 0)) ball.velocity.y = -(ball.velocity.y);
 
     // Ball collides with sides of screen
-    if ( (ball.position.x == screenWidth)) // Player two scores
+    if ( (ball.position.x == screenWidth))
     {
-        playerTwoScore++;
+        playerOne.score++;
     }
 
-    if ((ball.position.x == 0)) // Player one scores
+    if ((ball.position.x == 0))
     {
-        playerOneScore++;
+        playerTwo.score++;
     }
 
     ball.position.x += ball.velocity.x;
@@ -118,6 +125,8 @@ void DrawGame(void)
     DrawRectangleRec(playerOne.paddle, WHITE);
     DrawRectangleRec(playerTwo.paddle, WHITE);
     DrawCircleV(ball.position, 25.0f, WHITE);
+    DrawText(TextFormat("%d", playerOne.score), (screenWidth/2)/2, 30, 75, WHITE);
+    DrawText(TextFormat("%d", playerTwo.score), (screenWidth - (screenWidth/4)), 30, 75, WHITE);
     EndDrawing();
 }
 
