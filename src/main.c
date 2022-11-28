@@ -12,14 +12,22 @@ typedef struct Ball {
     Vector2 velocity;
 } Ball;
 
+typedef enum GameState {
+    LOGO = 0,
+    TITLE,
+    GAMEPLAY,
+    ENDING
+} GameState;
+
 // Initialize
-static const int screenWidth = 1920;
-static const int screenHeight = 1080;
+static const int screenWidth = 1280;
+static const int screenHeight = 720;
 static const int frameRate = 144;
 
 static Player playerOne = { 0 };
 static Player playerTwo = { 0 };
 static Ball ball = { 0 };
+static GameState currentState = LOGO;
 
 static void InitGame(void);
 static void UpdateGame(void);
@@ -31,12 +39,48 @@ int main(void)
     InitWindow(screenWidth, screenHeight, "Pong");
     InitGame();
 
+    int framesCounter = 0;
+
     SetTargetFPS(frameRate);
 
     // Main game loop
     while (!WindowShouldClose())
     {
-        UpdateDrawFrame();
+        switch (currentState)
+        {
+            case LOGO:
+            {
+                framesCounter++;
+
+                if (framesCounter > frameRate * 2)
+                {
+                    currentState = TITLE;
+                }
+            } break;
+            case TITLE:
+            {
+                if (IsKeyPressed(KEY_ENTER))
+                {
+                    currentState = GAMEPLAY;
+                }
+            } break;
+            case GAMEPLAY:
+            {
+                UpdateDrawFrame();
+            } break;
+            case ENDING:
+            {
+                if (IsKeyPressed(KEY_ENTER))
+                {
+                    currentState = TITLE;
+                }
+            } break;
+            default: break;
+
+
+        }
+        DrawGame();
+        // UpdateDrawFrame();
     }
 
     CloseWindow();
@@ -115,11 +159,36 @@ void DrawGame(void)
 {
     BeginDrawing();
     ClearBackground(BLACK);
-    DrawRectangleRec(playerOne.paddle, WHITE);
-    DrawRectangleRec(playerTwo.paddle, WHITE);
-    DrawCircleV(ball.position, 25.0f, WHITE);
-    DrawText(TextFormat("%d", playerOne.score), (screenWidth/2)/2, 30, 75, WHITE);
-    DrawText(TextFormat("%d", playerTwo.score), (screenWidth - (screenWidth/4)), 30, 75, WHITE);
+
+    switch(currentState) 
+    {
+        case LOGO:
+        {
+            DrawText("CPong", screenWidth/2, screenHeight/2, 40, WHITE);
+        } break;
+        case TITLE:
+        {
+            DrawText("PONG", 20, 20, 40, WHITE);
+        } break;
+        case GAMEPLAY:
+        {
+            DrawRectangleRec(playerOne.paddle, WHITE);
+            DrawRectangleRec(playerTwo.paddle, WHITE);
+            DrawCircleV(ball.position, 25.0f, WHITE);
+            DrawText(TextFormat("%d", playerOne.score), (screenWidth/2)/2, 30, 75, WHITE);
+            DrawText(TextFormat("%d", playerTwo.score), (screenWidth - (screenWidth/4)), 30, 75, WHITE);
+        } break;
+        case ENDING:
+        {
+            DrawText("GAME OVER", screenWidth/2, screenHeight/2, 50, WHITE);
+        } break;
+        default: break;
+    }
+    // DrawRectangleRec(playerOne.paddle, WHITE);
+    // DrawRectangleRec(playerTwo.paddle, WHITE);
+    // DrawCircleV(ball.position, 25.0f, WHITE);
+    // DrawText(TextFormat("%d", playerOne.score), (screenWidth/2)/2, 30, 75, WHITE);
+    // DrawText(TextFormat("%d", playerTwo.score), (screenWidth - (screenWidth/4)), 30, 75, WHITE);
     EndDrawing();
 }
 
